@@ -1,15 +1,54 @@
 import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
 import { useState } from "react";
 
-const Login = () => {
+//Importação dos recursos de autenticação através das configurações do Firebase
+import { auth } from "../firebaseConfig";
+
+//Importação das funções de autenticação direto da biblioteca
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
   const login = () => {
     if (!email || !senha) {
       Alert.alert("Atenção!", "Você deve preencher todos os campos");
+      return; //Para o processo
     }
+
+    signInWithEmailAndPassword(auth, email, senha)
+      .then(() => {
+        navigation.navigate("AreaLogada");
+      })
+      .catch((error) => {
+        let mensagem;
+        switch (error.code) {
+          case "auth/user-not-found":
+            mensagem = "Usuário não encontrado!";
+            break;
+          case "auth/wrong-password":
+            mensagem = "Senha incorreta";
+            break;
+          default:
+            mensagem = "Houve um erro. Tente novamente mais tarde";
+            break;
+        }
+
+        Alert.alert("Ops", mensagem);
+      });
   };
+
+  const recuperarSenha = () => {
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        Alert.alert("Atenção!", "Verifique sua caixa de entrada");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   return (
     <View style={estilos.container}>
       <View style={estilos.formulario}>
@@ -27,6 +66,12 @@ const Login = () => {
         />
         <View style={estilos.botoes}>
           <Button title="Entre" color="green" onPress={login} />
+
+          <Button
+            title="Esqueci minha senha"
+            color="yellow"
+            onPress={recuperarSenha}
+          />
         </View>
       </View>
     </View>
