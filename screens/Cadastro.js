@@ -5,17 +5,66 @@ import { auth } from "../firebaseConfig";
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
-const Cadastro = () => {
+import { ActivityIndicator } from "react-native";
+
+const Cadastro = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const cadastrar = () => {
     if (!email || !senha) {
       Alert.alert("Atenção", "Você deve preencher e-mail e senha");
       return;
     }
+    setLoading(true);
 
-    createUserWithEmailAndPassword(auth, email, senha);
+    createUserWithEmailAndPassword(auth, email, senha)
+      .then(() => {
+        setLoading(false);
+
+        const entrar = () => {
+          navigation.navigate("AreaLogada");
+        };
+
+        const cancel = () => {
+          navigation.navigate("Inicial");
+        };
+
+        Alert.alert(
+          "Conta criada com sucesso.",
+          "Deseja entrar no aplicativo?",
+          [
+            {
+              text: "Sim! Quero entrar",
+              onPress: entrar,
+            },
+            {
+              text: "Não!",
+              onPress: cancel,
+            },
+          ]
+        );
+      })
+      .catch((error) => {
+        console.log(error);
+        let mensagem;
+        switch (error.code) {
+          case "auth/email-already-in-use":
+            mensagem = "E-mail já cadastrado";
+            break;
+          case "auth/weak-password":
+            mensagem = "Senha deve ter, pelo menos, seis digitos!";
+            break;
+          default:
+            mensagem = "Algo deu errado... Tente novamente";
+            break;
+        }
+        Alert.alert("Atenção!", mensagem);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -34,7 +83,13 @@ const Cadastro = () => {
           onChangeText={(valor) => setSenha(valor)}
         />
         <View style={estilos.botoes}>
-          <Button onPress={cadastrar} title="Cadastre-se" color="blue" />
+          <Button
+            onPress={cadastrar}
+            title="Cadastre-se"
+            color="blue"
+            disabled={loading}
+          />
+          {loading && <ActivityIndicator size="small" color="#0000ff" />}
         </View>
       </View>
     </View>

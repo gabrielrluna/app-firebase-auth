@@ -1,6 +1,8 @@
 import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
 import { useState } from "react";
 
+import { ActivityIndicator } from "react-native";
+
 //Importação dos recursos de autenticação através das configurações do Firebase
 import { auth } from "../firebaseConfig";
 
@@ -10,6 +12,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const login = () => {
     if (!email || !senha) {
@@ -17,8 +20,12 @@ const Login = ({ navigation }) => {
       return; //Para o processo
     }
 
+    setLoading(true);
+
     signInWithEmailAndPassword(auth, email, senha)
       .then(() => {
+        setLoading(false);
+
         navigation.navigate("AreaLogada");
       })
       .catch((error) => {
@@ -36,6 +43,9 @@ const Login = ({ navigation }) => {
         }
 
         Alert.alert("Ops", mensagem);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -65,8 +75,13 @@ const Login = ({ navigation }) => {
           onChangeText={(valor) => setSenha(valor)}
         />
         <View style={estilos.botoes}>
-          <Button title="Entre" color="green" onPress={login} />
-
+          <Button
+            title="Entre"
+            color="green"
+            onPress={login}
+            disabled={loading}
+          />
+          {loading && <ActivityIndicator size="small" color="#0000ff" />}
           <Button
             title="Esqueci minha senha"
             color="yellow"
