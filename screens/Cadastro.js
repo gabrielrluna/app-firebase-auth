@@ -1,64 +1,141 @@
+import { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Button,
   StyleSheet,
-  Text,
+  TextInput,
   View,
 } from "react-native";
 
 import { auth } from "../firebaseConfig";
-import { signOut } from "firebase/auth";
-import { useState } from "react";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
-const AreaLogada = ({ navigation }) => {
+const Cadastro = ({ navigation }) => {
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const logout = () => {
+  const cadastrar = () => {
+    if (!email || !senha) {
+      Alert.alert("Atenção", "Você deve preencher e-mail e senha");
+      return;
+    }
+
     setLoading(true);
-    signOut(auth)
+    createUserWithEmailAndPassword(auth, email, senha)
       .then(() => {
-        navigation.replace("Inicial");
+        /*Ao fazer a criação do novo usuário (com email e senha),
+         aproveitamos para atualizar via updateProfile a propriedade
+         do auth que permte adicionar um nome ao usuário*/
+        updateProfile(auth.currentUser, {
+          displayName: nome,
+        });
+
+        Alert.alert("Cadastro", "Conta criada com sucesso!", [
+          {
+            text: "Não, me deixe aqui mesmo",
+            onPress: () => {
+              // setEmail("");
+              // setSenha("");
+              // return false;
+              navigation.replace("Cadastro");
+            },
+            style: "cancel",
+          },
+          {
+            text: "Sim, bora lá!",
+            onPress: () => {
+              navigation.replace("AreaLogada");
+            },
+            style: "default",
+          },
+        ]);
       })
       .catch((error) => {
         console.log(error);
+        let mensagem;
+        switch (error.code) {
+          case "auth/email-already-in-use":
+            mensagem = "E-mail já cadastrado!";
+            break;
+
+          case "auth/weak-password":
+            mensagem = "Senha deve ter pelo menos 6 dígitos!";
+            break;
+
+          case "auth/invalid-email":
+            mensagem = "Endereço de e-mail inválido!";
+            break;
+
+          default:
+            mensagem = "Algo deu errado... tente novamente!";
+            break;
+        }
+        Alert.alert("Atenção!", mensagem);
       })
       .finally(() => setLoading(false));
   };
 
   return (
     <View style={estilos.container}>
-      <View style={estilos.topo}>
-        <Text style={estilos.bemVindo}>Bem-vindo(a)</Text>
-        <Button
-          disabled={loading}
-          title="Logout"
-          color="#D35400"
-          onPress={logout}
+      <View style={estilos.formulario}>
+        <TextInput
+          placeholder="Nome"
+          style={estilos.input}
+          // keyboardType="email-address"
+          onChangeText={(valor) => setNome(valor)}
         />
-      </View>
-
-      {loading && <ActivityIndicator size="large" color="orange" />}
-
-      <View style={estilos.geral}>
-        <Text>Você está na área logada.</Text>
+        <TextInput
+          placeholder="E-mail"
+          style={estilos.input}
+          keyboardType="email-address"
+          onChangeText={(valor) => setEmail(valor)}
+        />
+        <TextInput
+          placeholder="Senha"
+          style={estilos.input}
+          secureTextEntry
+          onChangeText={(valor) => setSenha(valor)}
+        />
+        <View style={estilos.botoes}>
+          <Button
+            disabled={loading}
+            onPress={cadastrar}
+            title="Cadastre-se"
+            color="blue"
+          />
+          {loading && <ActivityIndicator size="large" color="blue" />}
+        </View>
       </View>
     </View>
   );
 };
 
-export default AreaLogada;
+export default Cadastro;
 
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FCF3CF",
-    padding: 16,
+    backgroundColor: "lightblue",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  topo: {
-    marginVertical: 32,
-  },
-  bemVindo: {
-    fontSize: 24,
+  formulario: {
     marginVertical: 16,
+    width: "80%",
+  },
+  input: {
+    backgroundColor: "white",
+    marginVertical: 8,
+    padding: 8,
+    borderRadius: 4,
+  },
+  botoes: {
+    marginVertical: 8,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });
