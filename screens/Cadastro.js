@@ -1,124 +1,64 @@
-import { useState } from "react";
-import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { auth } from "../firebaseConfig";
+import { signOut } from "firebase/auth";
+import { useState } from "react";
 
-import { createUserWithEmailAndPassword } from "firebase/auth";
-
-import { ActivityIndicator } from "react-native";
-
-const Cadastro = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+const AreaLogada = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
-  const cadastrar = () => {
-    if (!email || !senha) {
-      Alert.alert("Atenção", "Você deve preencher e-mail e senha");
-      return;
-    }
+  const logout = () => {
     setLoading(true);
-
-    createUserWithEmailAndPassword(auth, email, senha)
+    signOut(auth)
       .then(() => {
-        setLoading(false);
-
-        const entrar = () => {
-          navigation.navigate("AreaLogada");
-        };
-
-        const cancel = () => {
-          navigation.navigate("Inicial");
-        };
-
-        Alert.alert(
-          "Conta criada com sucesso.",
-          "Deseja entrar no aplicativo?",
-          [
-            {
-              text: "Sim! Quero entrar",
-              onPress: entrar,
-            },
-            {
-              text: "Não!",
-              onPress: cancel,
-            },
-          ]
-        );
+        navigation.replace("Inicial");
       })
       .catch((error) => {
         console.log(error);
-        let mensagem;
-        switch (error.code) {
-          case "auth/email-already-in-use":
-            mensagem = "E-mail já cadastrado";
-            break;
-          case "auth/weak-password":
-            mensagem = "Senha deve ter, pelo menos, seis digitos!";
-            break;
-          default:
-            mensagem = "Algo deu errado... Tente novamente";
-            break;
-        }
-        Alert.alert("Atenção!", mensagem);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
   return (
     <View style={estilos.container}>
-      <View style={estilos.formulario}>
-        <TextInput
-          placeholder="E-mail"
-          style={estilos.input}
-          keyboardType="email-address"
-          onChangeText={(valor) => setEmail(valor)}
+      <View style={estilos.topo}>
+        <Text style={estilos.bemVindo}>Bem-vindo(a)</Text>
+        <Button
+          disabled={loading}
+          title="Logout"
+          color="#D35400"
+          onPress={logout}
         />
-        <TextInput
-          placeholder="Senha"
-          style={estilos.input}
-          secureTextEntry
-          onChangeText={(valor) => setSenha(valor)}
-        />
-        <View style={estilos.botoes}>
-          <Button
-            onPress={cadastrar}
-            title="Cadastre-se"
-            color="blue"
-            disabled={loading}
-          />
-          {loading && <ActivityIndicator size="small" color="#0000ff" />}
-        </View>
+      </View>
+
+      {loading && <ActivityIndicator size="large" color="orange" />}
+
+      <View style={estilos.geral}>
+        <Text>Você está na área logada.</Text>
       </View>
     </View>
   );
 };
 
-export default Cadastro;
+export default AreaLogada;
 
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "lightblue",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "#FCF3CF",
+    padding: 16,
   },
-  formulario: {
+  topo: {
+    marginVertical: 32,
+  },
+  bemVindo: {
+    fontSize: 24,
     marginVertical: 16,
-    width: "80%",
-  },
-  input: {
-    backgroundColor: "white",
-    marginVertical: 8,
-    padding: 8,
-    borderRadius: 4,
-  },
-  botoes: {
-    marginVertical: 8,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
   },
 });
