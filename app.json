@@ -25,7 +25,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.nautico700.appfirebaseauth"
     },
     "web": {
       "favicon": "./assets/favicon.png"
