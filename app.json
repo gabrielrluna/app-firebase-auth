@@ -12,7 +12,8 @@
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/16bbb1a6-27d1-4e49-ba80-04b976d1bee8"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -28,6 +29,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "16bbb1a6-27d1-4e49-ba80-04b976d1bee8"
+      }
+    },
+    "owner": "nautico700",
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
